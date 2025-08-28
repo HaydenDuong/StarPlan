@@ -5,5 +5,14 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
-    <style name="Theme.StarPlan" parent="Base.Theme.StarPlan" />
+    <style name="Theme.StarPlan" parent="Base.Theme.StarPlan">
+        <item name="android:windowBackground">@drawable/bg_splash_full</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="android:windowSplashScreenBackground">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.StarPlan.App</item>
+    </style>
+
+    <style name="Theme.StarPlan.App" parent="Base.Theme.StarPlan">
+        <item name="android:windowBackground">@drawable/bg_splash_full</item>
+    </style>
 </resources>
