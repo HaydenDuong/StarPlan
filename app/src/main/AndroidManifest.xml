@@ -30,6 +30,24 @@
         <activity
             android:name=".JobDetailActivity"
             android:exported="false" />
+        <activity
+            android:name=".ResumeLibraryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ResumeBuilderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PersonalInfoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ObjectivesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ExperienceActivity"
+            android:exported="false" />
+        <activity
+            android:name=".EducationActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

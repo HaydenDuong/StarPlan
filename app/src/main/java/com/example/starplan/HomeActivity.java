@@ -1,5 +1,6 @@
 package com.example.starplan;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
@@ -7,8 +8,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.crashlytics.buildtools.reloc.com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,8 +86,9 @@ public class HomeActivity extends AppCompatActivity {
                 Toast.makeText(this, "Dashboard - Coming Soon", Toast.LENGTH_SHORT).show();
                 return false;
             } else if (itemId == R.id.nav_resume) {
-                Toast.makeText(this, "Resume - Coming Soon", Toast.LENGTH_SHORT).show();
-                return false;
+                startActivity(new Intent(this, ResumeLibraryActivity.class));
+                finish();
+                return true;
             } else if (itemId == R.id.nav_profile) {
                 Toast.makeText(this, "Profile - Coming Soon", Toast.LENGTH_SHORT).show();
                 return false;
@@ -99,7 +101,9 @@ public class HomeActivity extends AppCompatActivity {
         findViewById(R.id.btnUpload).setOnClickListener(v -> 
             Toast.makeText(this, "Upload Resume - Coming Soon", Toast.LENGTH_SHORT).show());
         
-        findViewById(R.id.btnCreateNew).setOnClickListener(v -> 
-            Toast.makeText(this, "Create New Resume - Coming Soon", Toast.LENGTH_SHORT).show());
+        findViewById(R.id.btnCreateNew).setOnClickListener(v -> {
+            Intent intent = new Intent(this, ResumeBuilderActivity.class);
+            startActivity(intent);
+        });
     }
 }
