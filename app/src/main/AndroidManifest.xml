@@ -24,6 +24,12 @@
         <activity
             android:name=".OnboardingActivity"
             android:exported="false" />
+        <activity
+            android:name=".HomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".JobDetailActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

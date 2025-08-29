@@ -15,10 +15,14 @@ public class OnboardingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_onboarding);
 
         findViewById(R.id.btnLogin).setOnClickListener(v -> {
-            // TODO: Replace with real LoginActivity when available
+            Intent intent = new Intent(this, HomeActivity.class);
+            startActivity(intent);
+            finish();
         });
         findViewById(R.id.btnSignup).setOnClickListener(v -> {
-            // TODO: Replace with real SignupActivity when available
+            Intent intent = new Intent(this, HomeActivity.class);
+            startActivity(intent);
+            finish();
         });
     }
 }
