@@ -1,7 +1,12 @@
 package com.example.starplan;
 
+import static android.content.ContentValues.TAG;
+import static android.webkit.ConsoleMessage.MessageLevel.LOG;
+
 import android.graphics.Color;
+import android.content.Intent; // Added import
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,11 +27,15 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Random;
 
+
 public class JobDetailActivity extends AppCompatActivity {
     private Job currentJob;
     private TabLayout tabLayout;
     private View descriptionContent, companyContent, aiSummaryContent;
     private Random random = new Random();
+
+    //int jobId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +63,10 @@ public class JobDetailActivity extends AppCompatActivity {
     }
 
     private void loadJobData() {
-        int jobId = getIntent().getIntExtra("job_id", 1);
-        
+        // Get job ID from intent, original init here
+        int jobIdFromIntent = getIntent().getIntExtra("job_id", 1); // Renamed to avoid confusion
+        Log.d(TAG, "Job id from intent is " + jobIdFromIntent );
+
         try {
             // Read JSON from assets
             InputStream is = getAssets().open("job_listings.json");
@@ -75,7 +86,7 @@ public class JobDetailActivity extends AppCompatActivity {
 
             // Find the job with matching ID
             currentJob = jobs.stream()
-                    .filter(job -> job.id == jobId)
+                    .filter(job -> job.id == jobIdFromIntent)
                     .findFirst()
                     .orElse(jobs.get(0)); // fallback to first job
 
@@ -88,7 +99,12 @@ public class JobDetailActivity extends AppCompatActivity {
     }
 
     private void populateJobDetails() {
-        if (currentJob == null) return;
+        if (currentJob == null) {
+            Log.e(TAG, "populateJobDetails: currentJob is null. Cannot populate details.");
+            Toast.makeText(this, "Error: Job details not found.", Toast.LENGTH_LONG).show();
+            finish(); // Consider finishing if currentJob is essential and not found
+            return;
+        }
 
         // Header info
         TextView jobTitle = findViewById(R.id.jobTitle);
@@ -136,6 +152,10 @@ public class JobDetailActivity extends AppCompatActivity {
     }
 
     private void populateTabContent() {
+        if (currentJob == null) { // Added null check here too for safety
+             Log.e(TAG, "populateTabContent: currentJob is null.");
+             return;
+        }
         // Description tab
         TextView jobDescription = findViewById(R.id.jobDescription);
         TextView responsibilities = findViewById(R.id.responsibilities);
@@ -210,8 +230,17 @@ public class JobDetailActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        findViewById(R.id.btnApply).setOnClickListener(v -> 
-            Toast.makeText(this, "Application submitted successfully!", Toast.LENGTH_SHORT).show());
+        findViewById(R.id.btnApply).setOnClickListener(v -> {
+            if (currentJob != null) {
+                Intent intent = new Intent(JobDetailActivity.this, ResumeUploadActivity.class);
+                intent.putExtra("job_id", currentJob.id); // Pass the actual job ID
+                Log.d(TAG, "Starting ResumeUploadActivity with job_id: " + currentJob.id);
+                startActivity(intent);
+            } else {
+                Log.e(TAG, "btnApply clicked but currentJob is null. Cannot proceed.");
+                Toast.makeText(JobDetailActivity.this, "Cannot apply: Job data not loaded.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
