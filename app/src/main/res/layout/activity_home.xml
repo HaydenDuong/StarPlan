@@ -205,6 +205,7 @@
         android:layout_gravity="bottom"
         app:menu="@menu/bottom_nav_menu"
         app:itemIconTint="@color/brand_blue"
-        app:itemTextColor="@color/brand_blue" />
+        app:itemTextColor="@color/brand_blue"
+        app:labelVisibilityMode="labeled" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
