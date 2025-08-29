@@ -1,5 +1,6 @@
 package com.example.starplan;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -14,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -21,6 +23,9 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,8 +76,7 @@ public class ResumeBuilderActivity extends AppCompatActivity {
         setupCurrentJobCheckbox();
             
         // Create Resume button
-        findViewById(R.id.btnCreateResume).setOnClickListener(v -> 
-            Toast.makeText(this, "Creating Resume - Coming Soon", Toast.LENGTH_SHORT).show());
+        findViewById(R.id.btnCreateResume).setOnClickListener(v -> createResume());
     }
 
     private void toggleSection(LinearLayout content, ImageView expandIcon) {
@@ -272,6 +276,190 @@ public class ResumeBuilderActivity extends AppCompatActivity {
         languageItem.addView(languageText);
         languageItem.addView(removeBtn);
         container.addView(languageItem);
+    }
+
+    private void createResume() {
+        // Validate required fields
+        if (!validateRequiredSections()) {
+            return;
+        }
+
+        // Show progress dialog
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Generating your resume...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        // Collect all resume data
+        String resumeData = collectResumeData();
+
+        // Call API to generate resume
+        ApiService apiService = new ApiService(this);
+        apiService.generateResume(resumeData, new ApiService.FileCallback() {
+            @Override
+            public void onSuccess(File file) {
+                progressDialog.dismiss();
+                showSuccessDialog();
+            }
+
+            @Override
+            public void onError(String error) {
+                progressDialog.dismiss();
+                showErrorDialog(error);
+            }
+        });
+    }
+
+    private boolean validateRequiredSections() {
+        StringBuilder errors = new StringBuilder();
+        boolean isValid = true;
+
+        // Personal Info - Name is required
+        String fullName = getFieldText(R.id.etName);
+        if (fullName.isEmpty()) {
+            errors.append("• Full name is required\n");
+            isValid = false;
+        }
+
+        String email = getFieldText(R.id.etEmail);
+        if (email.isEmpty()) {
+            errors.append("• Email is required\n");
+            isValid = false;
+        }
+
+        // At least one of Experience or Education
+        if (!hasExperienceData() && !hasEducationData()) {
+            errors.append("• Please fill either Experience or Education section\n");
+            isValid = false;
+        }
+
+        if (!isValid) {
+            showValidationDialog(errors.toString());
+        }
+
+        return isValid;
+    }
+
+    private boolean hasExperienceData() {
+        String company = getFieldText(R.id.etCompanyExp);
+        return !company.isEmpty();
+    }
+
+    private boolean hasEducationData() {
+        String university = getFieldText(R.id.etUniversityEdu);
+        String degree = getFieldText(R.id.etDegreeEdu);
+        return !university.isEmpty() || !degree.isEmpty();
+    }
+
+    private String getFieldText(int fieldId) {
+        EditText field = findViewById(fieldId);
+        return field != null ? field.getText().toString().trim() : "";
+    }
+
+    private String getDropdownValue(int dropdownId) {
+        AutoCompleteTextView dropdown = findViewById(dropdownId);
+        return dropdown != null ? dropdown.getText().toString().trim() : "";
+    }
+
+    private String collectResumeData() {
+        JsonObject resumeData = new JsonObject();
+
+        // Personal Information
+        JsonObject personalInfo = new JsonObject();
+        personalInfo.addProperty("name", getFieldText(R.id.etName));
+        personalInfo.addProperty("email", getFieldText(R.id.etEmail));
+        personalInfo.addProperty("phone", getFieldText(R.id.etContactNo));
+        personalInfo.addProperty("address", ""); // No address field in current layout
+        resumeData.add("personal_info", personalInfo);
+
+        // Objectives
+        JsonObject objectives = new JsonObject();
+        objectives.addProperty("industry", getDropdownValue(R.id.spinnerIndustryObj));
+        objectives.addProperty("level_of_work", getDropdownValue(R.id.spinnerLevelOfWorkObj));
+        objectives.addProperty("company_scale", getDropdownValue(R.id.spinnerCompanyScaleObj));
+        resumeData.add("objectives", objectives);
+
+        // Experience
+        JsonObject experience = new JsonObject();
+        experience.addProperty("job_title", ""); // No job title field in current layout
+        experience.addProperty("company", getFieldText(R.id.etCompanyExp));
+        experience.addProperty("from_date", getFieldText(R.id.etFromDateExp));
+        experience.addProperty("to_date", getFieldText(R.id.etToDateExp));
+        experience.addProperty("responsibilities", getFieldText(R.id.etResponsibilitiesExp));
+        
+        CheckBox currentJobCheckbox = findViewById(R.id.cbCurrentJobExp);
+        experience.addProperty("is_current_job", currentJobCheckbox != null && currentJobCheckbox.isChecked());
+        resumeData.add("experience", experience);
+
+        // Education
+        JsonObject education = new JsonObject();
+        education.addProperty("university", getFieldText(R.id.etUniversityEdu));
+        education.addProperty("degree", getFieldText(R.id.etDegreeEdu));
+        education.addProperty("from_date", getFieldText(R.id.etFromDateEdu));
+        education.addProperty("to_date", getFieldText(R.id.etToDateEdu));
+        education.addProperty("background", getFieldText(R.id.etBackgroundEdu));
+        resumeData.add("education", education);
+
+        // Skills
+        List<String> skillsList = new ArrayList<>();
+        ChipGroup skillsChipGroup = findViewById(R.id.chipGroupSkills);
+        if (skillsChipGroup != null) {
+            for (int i = 0; i < skillsChipGroup.getChildCount(); i++) {
+                View child = skillsChipGroup.getChildAt(i);
+                if (child instanceof Chip) {
+                    skillsList.add(((Chip) child).getText().toString());
+                }
+            }
+        }
+        resumeData.addProperty("skills", String.join(", ", skillsList));
+
+        // Languages
+        List<String> languagesList = new ArrayList<>();
+        LinearLayout languageContainer = findViewById(R.id.languageContainer);
+        if (languageContainer != null) {
+            for (int i = 0; i < languageContainer.getChildCount(); i++) {
+                View child = languageContainer.getChildAt(i);
+                if (child instanceof LinearLayout) {
+                    LinearLayout languageItem = (LinearLayout) child;
+                    if (languageItem.getChildCount() > 0 && languageItem.getChildAt(0) instanceof TextView) {
+                        TextView languageText = (TextView) languageItem.getChildAt(0);
+                        languagesList.add(languageText.getText().toString());
+                    }
+                }
+            }
+        }
+        resumeData.addProperty("languages", String.join(", ", languagesList));
+
+        return new Gson().toJson(resumeData);
+    }
+
+    private void showValidationDialog(String errors) {
+        new AlertDialog.Builder(this)
+            .setTitle("Please Complete Required Fields")
+            .setMessage(errors)
+            .setPositiveButton("OK", null)
+            .show();
+    }
+
+    private void showSuccessDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle("Resume Created Successfully!")
+            .setMessage("Your resume has been generated and saved. You can view it in your Resume Library.")
+            .setPositiveButton("Go to Resume Library", (dialog, which) -> {
+                Intent intent = new Intent(this, ResumeLibraryActivity.class);
+                startActivity(intent);
+                finish();
+            })
+            .setNegativeButton("Stay Here", null)
+            .show();
+    }
+
+    private void showErrorDialog(String error) {
+        new AlertDialog.Builder(this)
+            .setTitle("Resume Creation Failed")
+            .setMessage(error)
+            .setPositiveButton("Try Again", null)
+            .show();
     }
 
     @Override

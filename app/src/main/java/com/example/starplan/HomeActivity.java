@@ -1,9 +1,13 @@
 package com.example.starplan;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,6 +26,7 @@ public class HomeActivity extends AppCompatActivity {
     private RecyclerView recyclerJobs;
     private JobAdapter jobAdapter;
     private List<Job> jobList;
+    private static final int UPLOAD_REQUEST_CODE = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,12 +103,74 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        findViewById(R.id.btnUpload).setOnClickListener(v -> 
-            Toast.makeText(this, "Upload Resume - Coming Soon", Toast.LENGTH_SHORT).show());
+        findViewById(R.id.btnUpload).setOnClickListener(v -> uploadResume());
         
         findViewById(R.id.btnCreateNew).setOnClickListener(v -> {
             Intent intent = new Intent(this, ResumeBuilderActivity.class);
             startActivity(intent);
         });
+    }
+
+    private void uploadResume() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("application/pdf");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(intent, UPLOAD_REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == UPLOAD_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            Uri fileUri = data.getData();
+            if (fileUri != null) {
+                handleFileUpload(fileUri);
+            }
+        }
+    }
+
+    private void handleFileUpload(Uri fileUri) {
+        // Show progress dialog
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Uploading resume...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        // Upload file
+        ApiService apiService = new ApiService(this);
+        apiService.uploadPdf(fileUri, new ApiService.ApiCallback() {
+            @Override
+            public void onSuccess(String message) {
+                progressDialog.dismiss();
+                showUploadSuccessDialog(message);
+            }
+
+            @Override
+            public void onError(String error) {
+                progressDialog.dismiss();
+                showUploadErrorDialog(error);
+            }
+        });
+    }
+
+    private void showUploadSuccessDialog(String message) {
+        new AlertDialog.Builder(this)
+            .setTitle("Upload Successful!")
+            .setMessage(message + "\n\nYour resume has been added to your Resume Library.")
+            .setPositiveButton("Go to Resume Library", (dialog, which) -> {
+                Intent intent = new Intent(this, ResumeLibraryActivity.class);
+                startActivity(intent);
+            })
+            .setNegativeButton("Stay Here", null)
+            .show();
+    }
+
+    private void showUploadErrorDialog(String error) {
+        new AlertDialog.Builder(this)
+            .setTitle("Upload Failed")
+            .setMessage(error)
+            .setPositiveButton("Try Again", null)
+            .show();
     }
 }
