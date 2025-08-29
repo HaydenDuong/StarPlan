@@ -12,87 +12,124 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.crashlytics.buildtools.reloc.com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
-public class HomeActivity extends AppCompatActivity {
-    private RecyclerView recyclerJobs;
-    private JobAdapter jobAdapter;
-    private List<Job> jobList;
-    private static final int UPLOAD_REQUEST_CODE = 1001;
+public class ResumeLibraryActivity extends AppCompatActivity {
+    private RecyclerView recyclerResumes;
+    private ResumeAdapter resumeAdapter;
+    private List<Resume> resumeList;
+    private static final int UPLOAD_REQUEST_CODE = 1002;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.activity_resume_library);
 
         initViews();
-        loadJobData();
+        loadMockResumeData();
         setupBottomNavigation();
         setupClickListeners();
     }
 
     private void initViews() {
-        recyclerJobs = findViewById(R.id.recyclerJobs);
-        recyclerJobs.setLayoutManager(new LinearLayoutManager(this));
+        recyclerResumes = findViewById(R.id.recyclerResumes);
+        recyclerResumes.setLayoutManager(new LinearLayoutManager(this));
     }
 
-    private void loadJobData() {
-        try {
-            // Read JSON from assets folder
-            InputStream is = getAssets().open("job_listings.json");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-            StringBuilder jsonBuilder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                jsonBuilder.append(line);
+    private void loadMockResumeData() {
+        resumeList = new ArrayList<>();
+        
+        // Load real generated resumes first
+        loadGeneratedResumes();
+        
+        // Then add mock resume data for demo
+        resumeList.add(new Resume(
+            "1", 
+            "Software Engineer Resume", 
+            "tailored_resume_job_2_upload.pdf",
+            "Last edited 2 days ago",
+            "pdf",
+            "Software Engineering",
+            ""
+        ));
+        
+        resumeList.add(new Resume(
+            "2", 
+            "Marketing Specialist Resume", 
+            "general_resume.pdf",
+            "Last edited 5 days ago", 
+            "pdf",
+            "Marketing",
+            ""
+        ));
+        
+        resumeList.add(new Resume(
+            "3", 
+            "Data Analyst Resume", 
+            "data_analyst_resume.pdf",
+            "Last edited 1 week ago",
+            "pdf", 
+            "Data Science",
+            ""
+        ));
+
+        // Setup adapter
+        resumeAdapter = new ResumeAdapter(this, resumeList);
+        recyclerResumes.setAdapter(resumeAdapter);
+    }
+
+    private void loadGeneratedResumes() {
+        // Load resumes from app's internal storage
+        File resumesDir = new File(getFilesDir(), "resumes");
+        if (resumesDir.exists() && resumesDir.isDirectory()) {
+            File[] files = resumesDir.listFiles();
+            if (files != null) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+                
+                for (File file : files) {
+                    if (file.isFile()) {
+                        String fileName = file.getName();
+                        String displayName = fileName.replace(".docx", "").replace("_", " ");
+                        String lastModified = "Generated " + dateFormat.format(new Date(file.lastModified()));
+                        String fileType = fileName.endsWith(".pdf") ? "pdf" : "docx";
+                        
+                        Resume generatedResume = new Resume(
+                            "gen_" + file.hashCode(), // Unique ID
+                            displayName + " Resume",
+                            fileName,
+                            lastModified,
+                            fileType,
+                            "Generated Resume",
+                            file.getAbsolutePath() // Store full path for opening
+                        );
+                        
+                        resumeList.add(generatedResume);
+                    }
+                }
             }
-            reader.close();
-
-            // Parse JSON
-            String jsonString = jsonBuilder.toString();
-            Gson gson = new Gson();
-            Type jobListType = new TypeToken<List<Job>>(){}.getType();
-            jobList = gson.fromJson(jsonString, jobListType);
-
-            // Limit to first 10 jobs for better performance
-            if (jobList.size() > 10) {
-                jobList = jobList.subList(0, 10);
-            }
-
-            // Setup adapter
-            jobAdapter = new JobAdapter(this, jobList);
-            recyclerJobs.setAdapter(jobAdapter);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Error loading job data", Toast.LENGTH_SHORT).show();
-            jobList = new ArrayList<>();
         }
     }
 
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavigation);
-        bottomNav.setSelectedItemId(R.id.nav_home);
+        bottomNav.setSelectedItemId(R.id.nav_resume);
         
         bottomNav.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
+                startActivity(new Intent(this, HomeActivity.class));
+                finish();
                 return true;
             } else if (itemId == R.id.nav_dashboard) {
                 Toast.makeText(this, "Dashboard - Coming Soon", Toast.LENGTH_SHORT).show();
                 return false;
             } else if (itemId == R.id.nav_resume) {
-                startActivity(new Intent(this, ResumeLibraryActivity.class));
-                finish();
                 return true;
             } else if (itemId == R.id.nav_profile) {
                 Toast.makeText(this, "Profile - Coming Soon", Toast.LENGTH_SHORT).show();
@@ -105,6 +142,7 @@ public class HomeActivity extends AppCompatActivity {
     private void setupClickListeners() {
         findViewById(R.id.btnUpload).setOnClickListener(v -> uploadResume());
         
+        // Navigate to Resume Builder flow
         findViewById(R.id.btnCreateNew).setOnClickListener(v -> {
             Intent intent = new Intent(this, ResumeBuilderActivity.class);
             startActivity(intent);
@@ -144,6 +182,8 @@ public class HomeActivity extends AppCompatActivity {
             public void onSuccess(String message) {
                 progressDialog.dismiss();
                 showUploadSuccessDialog(message);
+                // Refresh the resume list
+                loadMockResumeData();
             }
 
             @Override
@@ -157,12 +197,8 @@ public class HomeActivity extends AppCompatActivity {
     private void showUploadSuccessDialog(String message) {
         new AlertDialog.Builder(this)
             .setTitle("Upload Successful!")
-            .setMessage(message + "\n\nYour resume has been added to your Resume Library.")
-            .setPositiveButton("Go to Resume Library", (dialog, which) -> {
-                Intent intent = new Intent(this, ResumeLibraryActivity.class);
-                startActivity(intent);
-            })
-            .setNegativeButton("Stay Here", null)
+            .setMessage(message + "\n\nYour resume has been added to your library.")
+            .setPositiveButton("OK", null)
             .show();
     }
 

@@ -42,6 +42,8 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.splashscreen)
     implementation(libs.gson)
+    implementation(libs.okhttp)
+    implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
     implementation("com.squareup.okhttp3:okhttp:5.1.0")

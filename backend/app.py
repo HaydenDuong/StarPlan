@@ -5,6 +5,7 @@ from flask import Flask, request, send_file, jsonify
 from openai import OpenAI
 from dotenv import load_dotenv
 from docxtpl import DocxTemplate
+from docx2pdf import convert
 
 # Load environment variables from .env file
 load_dotenv()
@@ -35,6 +36,37 @@ def save_to_word(context, output_path="tailored_resume.docx"):
     except Exception as e:
         return jsonify({"error": f"An error occurred while creating the Word document: {e}"}), 500
 
+def save_to_pdf(context, output_path="tailored_resume.pdf"):
+    """
+    Saves a tailored resume to a PDF document using a pre-existing docx template.
+    First creates a .docx file, then converts it to PDF.
+    
+    Args:
+        context (dict): The dictionary containing the tailored resume data.
+        output_path (str): The path to save the new PDF document.
+    """
+    try:
+        # Create temporary docx file
+        temp_docx = output_path.replace('.pdf', '_temp.docx')
+        
+        # Generate Word document first
+        doc = DocxTemplate(TEMPLATE_PATH)
+        doc.render(context)
+        doc.save(temp_docx)
+        
+        # Convert to PDF
+        convert(temp_docx, output_path)
+        
+        # Clean up temporary docx file
+        if os.path.exists(temp_docx):
+            os.remove(temp_docx)
+            
+        return output_path
+    except FileNotFoundError:
+        return jsonify({"error": f"Template file '{TEMPLATE_PATH}' not found. Please ensure it is in the same directory."}), 400
+    except Exception as e:
+        return jsonify({"error": f"An error occurred while creating the PDF document: {e}"}), 500
+
 def get_job_description_by_id(job_id):
     """
     Loads job listings and returns the full job description for a given ID.
@@ -55,6 +87,11 @@ def generate_resume():
     """
     Generates a general resume without tailoring to a specific job.
     """
+    print("=== GENERATE RESUME ENDPOINT CALLED ===")
+    print(f"Request method: {request.method}")
+    print(f"Request headers: {dict(request.headers)}")
+    print(f"Request content type: {request.content_type}")
+    
     file = request.files.get("resume")
     resume_text = ""
     if file and file.filename.endswith(".pdf"):
@@ -88,8 +125,16 @@ def generate_resume():
             ]
         )
         context = json.loads(response.choices[0].message.content)
-        output_path = save_to_word(context)
-        return send_file(output_path, as_attachment=True, download_name="general_resume.docx")
+        
+        # Generate unique filename with timestamp  
+        import datetime
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_filename = f"generated_resume_{timestamp}.pdf"
+        output_path = os.path.join("Generated Documents", output_filename)
+        
+        # Save to Generated Documents folder as PDF
+        saved_path = save_to_pdf(context, output_path)
+        return send_file(saved_path, as_attachment=True, download_name=output_filename)
 
     except Exception as e:
         return jsonify({"error": f"An error occurred: {e}"}), 500
@@ -290,6 +335,10 @@ Languages:
     except Exception as e:
         return jsonify({"error": f"An error occurred: {e}"}), 500
 
+@app.route("/test", methods=["GET"])
+def test_endpoint():
+    """Simple test endpoint to verify backend is working"""
+    return jsonify({"status": "Backend is running!", "endpoints": ["/generate_resume", "/upload", "/get_feedback", "/submit_data"]})
 
 # Integrated list_resumes route
 @app.route("/list_resumes", methods=["GET"])
@@ -325,4 +374,4 @@ def list_resumes():
     return jsonify({"available_resumes": available_resumes})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
