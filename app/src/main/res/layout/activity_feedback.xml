@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/light_gray_background"
+    tools:context=".FeedbackActivity">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar_feedback"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/white"
+        app:title="Feedback"
+        app:navigationIcon="@drawable/ic_arrow_back" /> <!-- Assuming you have ic_arrow_back -->
+
+    <ProgressBar
+        android:id="@+id/progress_bar_overall"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:progress="75"
+        android:progressTint="@color/brand_blue"
+        android:backgroundTint="@color/progress_bar_background" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Resume Selection Display -->
+            <LinearLayout
+                android:id="@+id/ll_selected_resume_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@drawable/rounded_container_background"
+                android:padding="12dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/iv_resume_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_pdf_file_gray" 
+                    android:layout_marginEnd="12dp"/>
+
+                <TextView
+                    android:id="@+id/tv_selected_resume_name"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="your_resume_name.pdf"
+                    android:textColor="@color/dark_text"
+                    android:textSize="16sp"/>
+            </LinearLayout>
+
+            <!-- Resume Analysis Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Resume Analysis"
+                android:textSize="20sp"
+                android:textColor="@color/dark_text"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"/>
+            
+            <ProgressBar
+                android:id="@+id/progress_bar_feedback_loading"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                android:visibility="gone" 
+                android:layout_marginBottom="8dp"/>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cv_analysis_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp" 
+                app:cardBackgroundColor="@android:color/transparent"> 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/blue_bordered_card_background"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quick Analysis"
+                        android:textColor="@color/dark_text"
+                        android:textSize="18sp"
+                        android:textStyle="bold"/>
+                    
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="12dp">
+                        
+                        <ProgressBar 
+                            android:id="@+id/pb_circular_score"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:max="100"
+                            android:progress="0" 
+                            android:progressDrawable="@drawable/circular_progress_bar" 
+                            android:indeterminate="false"
+                            android:layout_marginEnd="16dp"/>
+
+                        <TextView
+                            android:id="@+id/tv_analysis_summary"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Fetching analysis..."
+                            android:textColor="@color/medium_text"
+                            android:textSize="14sp"/>
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/btn_check_improvement"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:layout_marginTop="16dp"
+                        android:text="Check what you can improve"
+                        android:textAllCaps="false"
+                        android:textColor="@color/brand_blue"
+                        app:icon="@drawable/ic_arrow_forward_blue"
+                        app:iconGravity="end"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            
+            <!-- RecyclerView for detailed breakdown (initially hidden) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_criteria_breakdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                tools:listitem="@layout/feedback_item" 
+                tools:visibility="visible"/>
+
+            <!-- Cover Letter Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cover Letter"
+                android:textSize="20sp"
+                android:textColor="@color/dark_text"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
+                android:id="@+id/et_cover_letter"
+                android:layout_width="match_parent"
+                android:layout_height="150dp" 
+                android:background="@drawable/rounded_container_background"
+                android:gravity="top|start"
+                android:hint="Write or generate your cover letter here..."
+                android:inputType="textMultiLine"
+                android:padding="12dp"
+                android:textSize="14sp"/>
+
+            <Button
+                android:id="@+id/btn_generate_cover_letter"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:text="Generate Cover Letter"
+                android:textAllCaps="false"
+                android:textColor="@color/light_gray_blue"
+                app:icon="@drawable/ic_sparkle_gray_blue"
+                app:iconGravity="textStart"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Navigation Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/white">
+
+        <Button
+            android:id="@+id/btn_previous_feedback"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Previous"
+            android:background="@drawable/button_outlined_white_background"
+            android:textColor="@color/brand_blue"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/btn_next_feedback"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Next"
+            android:background="@drawable/button_solid_blue_background"
+            android:textColor="@color/white"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+</LinearLayout>

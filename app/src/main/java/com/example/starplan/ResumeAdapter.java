@@ -3,6 +3,8 @@ package com.example.starplan;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,7 +60,6 @@ public class ResumeAdapter extends RecyclerView.Adapter<ResumeAdapter.ResumeView
         // Menu button
         holder.btnMenu.setOnClickListener(v -> 
             Toast.makeText(context, "Resume Options - Coming Soon", Toast.LENGTH_SHORT).show());
-    }
 
     @Override
     public int getItemCount() {

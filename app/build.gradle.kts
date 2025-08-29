@@ -29,6 +29,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
@@ -41,6 +44,9 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.okhttp)
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

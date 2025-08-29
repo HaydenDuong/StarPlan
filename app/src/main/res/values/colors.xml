@@ -3,4 +3,10 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="brand_blue">#5E6BFF</color>
+    <color name="light_gray_blue">#A0B0FF</color> <!-- Adjusted for a bit more visibility -->
+    <color name="light_gray_background">#F5F5F5</color>
+    <color name="dark_text">#333333</color>
+    <color name="medium_text">#757575</color>
+    <color name="progress_bar_background">#E0E0E0</color>
+    <color name="progress_bar_progress">#5E6BFF</color>
 </resources>

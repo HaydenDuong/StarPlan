@@ -1,0 +1,11 @@
+<!-- res/drawable/ic_sparkle_gray_blue.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0"
+    android:tint="@color/light_gray_blue">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12,2L9.88,7.33L4,8.38l4.47,4.97L7.29,19L12,16.09L16.71,19l-1.18,-5.65L20,8.38l-5.88,-1.05L12,2zM12,7.77l1.32,3.22l3.52,0.63l-2.69,2.98l0.71,3.39L12,16.09l-2.86,1.9l0.71,-3.39l-2.69,-2.98l3.52,-0.63L12,7.77z"/>
+</vector>

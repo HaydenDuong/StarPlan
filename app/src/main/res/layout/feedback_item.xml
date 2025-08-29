@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/tv_criteria_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Criteria Name (e.g., Impact Score)"
+        android:textColor="@color/dark_text"
+        android:textSize="16sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tv_criteria_score"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Score: 8/10"
+        android:textColor="@color/brand_blue"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"/>
+
+    <TextView
+        android:id="@+id/tv_criteria_justification"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Justification for the score goes here, explaining why this particular score was given based on the resume content."
+        android:textColor="@color/medium_text"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"/>
+
+</LinearLayout>

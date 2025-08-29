@@ -340,5 +340,38 @@ def test_endpoint():
     """Simple test endpoint to verify backend is working"""
     return jsonify({"status": "Backend is running!", "endpoints": ["/generate_resume", "/upload", "/get_feedback", "/submit_data"]})
 
+# Integrated list_resumes route
+@app.route("/list_resumes", methods=["GET"])
+def list_resumes():
+    """
+    Lists all available resume files in a designated directory.
+    This endpoint finds all .pdf and .docx files and returns their filenames.
+    """
+    # Define the directory where resumes are stored.
+    # Assumes a 'resumes' subdirectory exists at the same level as this script.
+    resume_directory = "./Generated Documents"
+
+    # Check if the resumes directory exists.
+    if not os.path.exists(resume_directory):
+        # If the directory doesn't exist, create it.
+        try:
+            os.makedirs(resume_directory)
+        except OSError as e:
+            return jsonify({"error": f"Error creating directory: {e}"}), 500
+        
+        # Since the directory was just created, there are no resumes to list.
+        return jsonify({"available_resumes": []})
+
+    # Find all .pdf and .docx files in the directory.
+    pdf_files = glob.glob(os.path.join(resume_directory, "*.pdf"))
+    docx_files = glob.glob(os.path.join(resume_directory, "*.docx"))
+    
+    # Combine the lists and get just the base filename.
+    available_resumes = [os.path.basename(f) for f in pdf_files + docx_files]
+
+    print("Available resumes:", available_resumes)
+    # Return the list of files as a JSON response.
+    return jsonify({"available_resumes": available_resumes})
+
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)
